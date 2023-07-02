@@ -1,28 +1,30 @@
 package main.restmodels;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import main.annotations.NonNullable;
-import main.datamodels.Address;
-import main.enums.UserRole;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class UserRegisterRequest {
-	@NonNullable
-	private String userName;
-	@NonNullable
+	@Pattern(regexp = "^[a-zA-Z]", message = "Please provide a valid name.")
+	private String name;
+	@Email(message = "Please provide a valid email.")
 	private String email;
-	@NonNullable
+	@Size(min = 8, message = "Password should have at least 8 characters.")
 	private String password;
-	@NonNullable
+	@Pattern(regexp = "^\\d{10}$", message = "Phone number can contain only numeric values and must be of 10 digits.")
 	private String phone;
-	@NonNullable
-	private Address address;
-	@NonNullable
-	private UserRole role;
+	private String role;
 	private String about;
 	private Boolean enabled;
 	private String imageUrl;

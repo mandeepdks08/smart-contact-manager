@@ -13,4 +13,9 @@ public class GsonUtils {
 		}
 		return gson;
 	}
+	
+	public static <T, V> V convert(T input, Class<V> outputClass) {
+		String inputJson = GsonUtils.getGson().toJson(input);
+		return GsonUtils.getGson().fromJson(inputJson, outputClass);
+	}
 }

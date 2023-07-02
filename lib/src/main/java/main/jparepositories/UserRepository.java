@@ -12,5 +12,5 @@ public interface UserRepository extends JpaRepository<DbUser, Long> {
 	@SuppressWarnings("unchecked")
 	public DbUser save(DbUser dbUser);
 	public Optional<DbUser> findById(Long id);
-	public DbUser findByUserName(String userName);
+	public DbUser findByEmail(String email);
 }

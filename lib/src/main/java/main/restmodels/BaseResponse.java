@@ -1,18 +1,40 @@
 package main.restmodels;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import main.datamodels.CustomError;
+import main.datamodels.Status;
 
-@Getter
-@Setter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BaseResponse {
-	private String message;
-	private Integer code;
-	
-	public BaseResponse(HttpStatus status) {
-		this.code = status.value();
-		this.message = (code >= 200 && code < 300) ? "SUCCESS" : "SOMETHING WENT WRONG";
+	private List<CustomError> errors;
+	private Status status;
+
+	public void addError(CustomError error) {
+		if (CollectionUtils.isEmpty(this.errors)) {
+			errors = new ArrayList<>();
+		}
+		errors.add(error);
+	}
+
+	public BaseResponse success() {
+		return BaseResponse.builder().status(Status.builder().success(true).httpStatus(HttpStatus.OK.value()).build())
+				.build();
+	}
+
+	public BaseResponse failure() {
+		return BaseResponse.builder()
+				.status(Status.builder().success(false).httpStatus(HttpStatus.BAD_REQUEST.value()).build()).build();
 	}
 }

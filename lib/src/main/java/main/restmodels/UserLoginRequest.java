@@ -1,14 +1,14 @@
 package main.restmodels;
 
-import lombok.Getter;
-import lombok.Setter;
-import main.annotations.NonNullable;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 
-@Getter
-@Setter
+import lombok.Data;
+
+@Data
 public class UserLoginRequest {
-	@NonNullable
-	private String username;
-	@NonNullable
+	@Email(message = "Please provide a valid email id.")
+	private String email;
+	@NotBlank(message = "Password is required.")
 	private String password;
 }
