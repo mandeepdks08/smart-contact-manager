@@ -16,7 +16,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class UserRegisterRequest {
-	@Pattern(regexp = "^[a-zA-Z]", message = "Please provide a valid name.")
+	@Pattern(regexp = "^[\\p{L} .'-]+$", message = "Please provide a valid name.")
 	private String name;
 	@Email(message = "Please provide a valid email.")
 	private String email;
