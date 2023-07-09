@@ -1,11 +1,13 @@
 package main.controllers;
 
-import java.util.Objects;
-
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,6 +19,7 @@ import main.jparepositories.UserRepository;
 import main.restmodels.BaseResponse;
 import main.restmodels.UserLoginRequest;
 import main.restmodels.UserRegisterRequest;
+import main.security.JwtUtils;
 import main.utils.GsonUtils;
 
 @RestController
@@ -27,23 +30,25 @@ public class UserController {
 	private UserRepository userRepo;
 
 	@Autowired
-	private BCryptPasswordEncoder passwordEncoder;
+	private PasswordEncoder passwordEncoder;
 
 	@RequestMapping(value = "/register", method = RequestMethod.POST)
 	protected BaseResponse register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
 		DbUser dbUser = GsonUtils.convert(userRegisterRequest, DbUser.class);
 		dbUser.setPassword(passwordEncoder.encode(dbUser.getPassword()));
 		userRepo.save(dbUser);
-		return new BaseResponse().success();
+		return BaseResponse.success();
 	}
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
-	protected BaseResponse login(@RequestBody @Valid UserLoginRequest loginRequest) throws CustomGeneralException {
+	protected ResponseEntity<?> login(@RequestBody @Valid UserLoginRequest loginRequest, HttpServletResponse response)
+			throws CustomGeneralException {
 		DbUser dbUser = userRepo.findByEmail(loginRequest.getEmail());
-		if (Objects.isNull(dbUser) || !passwordEncoder.matches(loginRequest.getPassword(), dbUser.getPassword())) {
-			throw new CustomGeneralException("Either email or password is incorrect");
-		}
-		return new BaseResponse().success();
+		if (dbUser == null || !passwordEncoder.matches(loginRequest.getPassword(), dbUser.getPassword()))
+			throw new CustomGeneralException("Could not authenticate the user!");
+		String token = JwtUtils.getJwtToken(dbUser);
+		response.addCookie(new Cookie("token", token));
+		return new ResponseEntity<>(BaseResponse.success(), HttpStatus.OK);
 	}
 
 }

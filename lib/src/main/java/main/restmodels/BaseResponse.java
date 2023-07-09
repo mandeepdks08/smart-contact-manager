@@ -28,12 +28,12 @@ public class BaseResponse {
 		errors.add(error);
 	}
 
-	public BaseResponse success() {
+	public static BaseResponse success() {
 		return BaseResponse.builder().status(Status.builder().success(true).httpStatus(HttpStatus.OK.value()).build())
 				.build();
 	}
 
-	public BaseResponse failure() {
+	public static BaseResponse failure() {
 		return BaseResponse.builder()
 				.status(Status.builder().success(false).httpStatus(HttpStatus.BAD_REQUEST.value()).build()).build();
 	}

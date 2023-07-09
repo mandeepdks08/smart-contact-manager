@@ -15,14 +15,12 @@ public class UserDetailsImpl implements UserDetails {
 	private DbUser dbUser;
 
 	public UserDetailsImpl(DbUser dbUser) {
-		super();
 		this.dbUser = dbUser;
 	}
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		SimpleGrantedAuthority roles = new SimpleGrantedAuthority(this.dbUser.getRole());
-		return Arrays.asList(roles);
+		return Arrays.asList(new SimpleGrantedAuthority(this.dbUser.getRole()));
 	}
 
 	@Override
