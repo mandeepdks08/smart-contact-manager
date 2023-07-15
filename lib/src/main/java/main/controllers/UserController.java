@@ -7,6 +7,9 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +35,9 @@ public class UserController {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	@Autowired
+	private AuthenticationManager authManager;
+
 	@RequestMapping(value = "/register", method = RequestMethod.POST)
 	protected BaseResponse register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
 		DbUser dbUser = GsonUtils.convert(userRegisterRequest, DbUser.class);
@@ -43,10 +49,12 @@ public class UserController {
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	protected ResponseEntity<?> login(@RequestBody @Valid UserLoginRequest loginRequest, HttpServletResponse response)
 			throws CustomGeneralException {
-		DbUser dbUser = userRepo.findByEmail(loginRequest.getEmail());
-		if (dbUser == null || !passwordEncoder.matches(loginRequest.getPassword(), dbUser.getPassword()))
-			throw new CustomGeneralException("Could not authenticate the user!");
-		String token = JwtUtils.getJwtToken(dbUser);
+		Authentication authentication = authManager.authenticate(
+				new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+		if (!authentication.isAuthenticated()) {
+			throw new CustomGeneralException("Bad credentials!");
+		}
+		String token = JwtUtils.getJwtToken(userRepo.findByEmail(loginRequest.getEmail()));
 		response.addCookie(new Cookie("token", token));
 		return new ResponseEntity<>(BaseResponse.success(), HttpStatus.OK);
 	}

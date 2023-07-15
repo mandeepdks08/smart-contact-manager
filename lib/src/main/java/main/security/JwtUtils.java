@@ -18,7 +18,6 @@ import main.dbmodels.DbUser;
 public class JwtUtils {
 
 	private static String SECRET;
-	@Value("${TIME_TO_LIVE}")
 	private static long TIME_TO_LIVE;
 
 	@Autowired

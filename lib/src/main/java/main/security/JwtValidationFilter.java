@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -42,10 +43,12 @@ public class JwtValidationFilter extends OncePerRequestFilter {
 			if (!JwtUtils.isValidToken(token, userId)) {
 				throw new IOException("Unauthorized!");
 			}
-			UserDetailsImpl userDetails = new UserDetailsImpl(dbUser);
+			UserDetails userDetails = new UserDetailsImpl(dbUser);
 			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
 					null, userDetails.getAuthorities());
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+			if (SecurityContextHolder.getContext().getAuthentication() == null) {
+				SecurityContextHolder.getContext().setAuthentication(authentication);
+			}
 		} catch (Exception e) {
 			throw new IOException("Unauthorized!");
 		}
