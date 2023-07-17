@@ -5,7 +5,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -23,6 +22,7 @@ public class DbContact {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	private Long userId;
 	private String name;
 	private String secondName;
 	private String work;
@@ -31,7 +31,4 @@ public class DbContact {
 	private String imageUrl;
 	@Column(length = 50000)
 	private String description;
-	
-	@ManyToOne
-	private DbUser dbUser;
 }

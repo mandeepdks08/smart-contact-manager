@@ -3,11 +3,11 @@ package main.jparepositories;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import main.dbmodels.DbUser;
 
-@Service
+@Repository
 public interface UserRepository extends JpaRepository<DbUser, Long> {
 	@SuppressWarnings("unchecked")
 	public DbUser save(DbUser dbUser);

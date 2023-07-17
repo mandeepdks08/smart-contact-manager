@@ -59,4 +59,14 @@ public class UserController {
 		return new ResponseEntity<>(BaseResponse.success(), HttpStatus.OK);
 	}
 
+	@RequestMapping(value = "/update", method = RequestMethod.PATCH)
+	protected ResponseEntity<?> update() {
+		return null;
+	}
+
+	@RequestMapping(value = "/delete", method = RequestMethod.DELETE)
+	protected ResponseEntity<?> delete() {
+		return null;
+	}
+
 }

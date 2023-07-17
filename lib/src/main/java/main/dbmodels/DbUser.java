@@ -1,16 +1,10 @@
 package main.dbmodels;
 
-import java.util.List;
-import java.util.ArrayList;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -38,9 +32,4 @@ public class DbUser {
 	private String about;
 	private Boolean enabled;
 	private String imageUrl;
-	
-	@Builder.Default
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "dbUser")
-	private List<DbContact> contacts = new ArrayList<>();
-	
 }
