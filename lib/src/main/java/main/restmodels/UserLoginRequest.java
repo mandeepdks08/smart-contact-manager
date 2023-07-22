@@ -11,4 +11,5 @@ public class UserLoginRequest {
 	private String email;
 	@NotBlank(message = "Password is required.")
 	private String password;
+	private String otp;
 }

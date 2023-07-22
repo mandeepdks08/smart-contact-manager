@@ -1,10 +1,15 @@
 package main.controllers;
 
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,6 +46,11 @@ public class UserController {
 	@Autowired
 	private AuthenticationManager authManager;
 
+	@Autowired
+	private RedisTemplate<String, Object> redisTemplate;
+
+	private final long OTP_EXPIRATION_TIME_SECONDS = 300;
+
 	@RequestMapping(value = "/register", method = RequestMethod.POST)
 	protected BaseResponse register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
 		DbUser dbUser = GsonUtils.convert(userRegisterRequest, DbUser.class);
@@ -52,13 +62,40 @@ public class UserController {
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	protected ResponseEntity<?> login(@RequestBody @Valid UserLoginRequest loginRequest, HttpServletResponse response)
 			throws CustomGeneralException {
-		Authentication authentication = authManager.authenticate(
-				new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-		if (!authentication.isAuthenticated()) {
-			throw new CustomGeneralException("Bad credentials!");
+		if (StringUtils.isEmpty(loginRequest.getOtp())) {
+			Authentication authentication = authManager.authenticate(
+					new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+			if (!authentication.isAuthenticated()) {
+				throw new CustomGeneralException("Bad credentials!");
+			}
+			DbUser dbUser = userRepo.findByEmail(loginRequest.getEmail());
+			String storedOtp = (String) redisTemplate.opsForValue().get(String.valueOf(dbUser.getId()));
+			if (StringUtils.isNotBlank(storedOtp)) {
+				long expiration = redisTemplate.getExpire(String.valueOf(dbUser.getId()), TimeUnit.SECONDS);
+				if (OTP_EXPIRATION_TIME_SECONDS - expiration < 60) {
+					throw new CustomGeneralException("Please try again after " + (expiration % 240) + " seconds!");
+				}
+			}
+			String otp = GenericUtils.generateOtp();
+			redisTemplate.opsForValue().set(String.valueOf(dbUser.getId()), otp, OTP_EXPIRATION_TIME_SECONDS,
+					TimeUnit.SECONDS);
+			// send OTP to user's email
+			System.out.println(String.valueOf(dbUser.getEmail()) + ": " + otp);
+		} else {
+			String otp = loginRequest.getOtp();
+			String email = loginRequest.getEmail();
+			DbUser dbUser = userRepo.findByEmail(email);
+			if (Objects.isNull(dbUser)) {
+				throw new CustomGeneralException("Bad credentials!");
+			}
+			String storedOtp = (String) redisTemplate.opsForValue().get(String.valueOf(dbUser.getId()));
+			if (!otp.equals(storedOtp)) {
+				throw new CustomGeneralException("Invalid OTP!");
+			}
+			redisTemplate.delete(String.valueOf(dbUser.getId()));
+			String token = JwtUtils.getJwtToken(dbUser);
+			response.addCookie(new Cookie("token", token));
 		}
-		String token = JwtUtils.getJwtToken(userRepo.findByEmail(loginRequest.getEmail()));
-		response.addCookie(new Cookie("token", token));
 		return new ResponseEntity<>(BaseResponse.success(), HttpStatus.OK);
 	}
 

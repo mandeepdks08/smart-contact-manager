@@ -56,4 +56,12 @@ public class GenericUtils {
 		return Arrays.stream(obj.getClass().getDeclaredFields())
 				.collect(Collectors.toMap(Field::getName, field -> field));
 	}
+	
+	public static String generateOtp() {
+		StringBuilder otp = new StringBuilder("");
+		while(otp.length() < 6) {
+			otp.append(String.valueOf((int)(Math.random() * 10)));
+		}
+		return otp.toString();
+	}
 }
