@@ -53,6 +53,12 @@ dependencies {
 
 	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt
 	implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+	
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis', version: '1.5.12.RELEASE'
+	
+	// https://mvnrepository.com/artifact/redis.clients/jedis
+	implementation group: 'redis.clients', name: 'jedis', version: '2.9.0'
 		
 }
 
