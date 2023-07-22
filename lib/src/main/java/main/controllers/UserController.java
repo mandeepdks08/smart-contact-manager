@@ -16,13 +16,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import main.SystemContextHolder;
 import main.customExceptions.CustomGeneralException;
 import main.dbmodels.DbUser;
 import main.jparepositories.UserRepository;
 import main.restmodels.BaseResponse;
+import main.restmodels.ChangePasswordRequest;
 import main.restmodels.UserLoginRequest;
 import main.restmodels.UserRegisterRequest;
 import main.security.JwtUtils;
+import main.utils.GenericUtils;
 import main.utils.GsonUtils;
 
 @RestController
@@ -60,13 +63,31 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/update", method = RequestMethod.PATCH)
-	protected ResponseEntity<?> update() {
-		return null;
+	protected ResponseEntity<?> update(@RequestBody DbUser updateRequest) throws CustomGeneralException {
+		updateRequest.setId(null);
+		updateRequest.setPassword(null);
+		DbUser dbUser = userRepo.findById(SystemContextHolder.getLoggedInUser().getId()).get();
+		DbUser updatedUser = GenericUtils.update(dbUser, updateRequest);
+		userRepo.save(updatedUser);
+		return ResponseEntity.ok(BaseResponse.success());
 	}
 
 	@RequestMapping(value = "/delete", method = RequestMethod.DELETE)
 	protected ResponseEntity<?> delete() {
 		return null;
+	}
+
+	@RequestMapping(value = "/change-password", method = RequestMethod.PATCH)
+	protected ResponseEntity<?> changePassword(@RequestBody @Valid ChangePasswordRequest req)
+			throws CustomGeneralException {
+		String oldPassword = req.getOldPassword();
+		DbUser dbUser = SystemContextHolder.getLoggedInUser();
+		if (!passwordEncoder.matches(oldPassword, dbUser.getPassword())) {
+			throw new CustomGeneralException("Wrong old password");
+		}
+		dbUser.setPassword(passwordEncoder.encode(req.getNewPassword()));
+		userRepo.save(dbUser);
+		return ResponseEntity.ok(BaseResponse.success());
 	}
 
 }
